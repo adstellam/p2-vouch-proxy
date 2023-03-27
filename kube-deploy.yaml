@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vouch-deployment
+  labels:
+    app.kubernetes.io/name: vouch
+    annapp.kubernetes.io/instance: vouch
+    app.kubernetes.io/version: 1.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vouch
+      app.kubernetes.io/instance: vouch
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vouch
+        app.kubernetes.io/instance: vouch
+    spec:
+      containers:
+        - name: vouch
+          image: quay.io/vouch/vouch-proxy
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+          volumeMounts:
+          - name: config
+            mountPath: /config
+          - name: data
+            mountPath: /data
+          resources:
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          startupProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 
+            successThreshold:
+            failureThreshold: 10
+      volumes:
+      - name: config
+        configMap:
+          name: vouch-configmap
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vouch-service
+  labels:
+    app.kubernetes.io/name: vouch
+    app.kubernetes.io/instance: vouch
+    app.kubernetes.io/version: 1.1.0
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  selector:
+    app.kubernetes.io/name: vouch
+    app.kubernetes.io/instance: vouch
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vouch-configmap
+  labels:
+    app.kubernetes.io/name: vouch
+    app.kubernetes.io/instance: vouch
+    app.kubernetes.io/version: 1.1.0
+data:
+  config.yaml: |
+    vouch:
+      listen: 0.0.0.0
+      port: 9090
+      logLevel: info
+      testing: false
+      allowAllUsers: true
+      publicAccess: false
+      jwt:
+        signing_method: HS256
+        secret: 0okmnhy65rdxzaq15tgbnji98uhbgt5rdxsw26yhnmko0bhytfv87543hytg
+        issuer: Vouch
+        maxAge: 240
+        compress: false
+      cookie:
+        name: VouchCookie
+        domain: stoutagtech.dev
+        secure: true
+        httpOnly: true
+        maxAge: 240
+        sameSite: lax
+      session:
+        name: VouchSession
+        maxAge: 5
+      headers:
+        jwt: X-Vouch-Token
+        accesstoken: X-Vouch-IdP-AccessToken
+        idtoken: X-Vouch-IdP-IdToken
+        redirect: X-Vouch-Requested-URI
+        claims:
+      post_logout_redirect_uris:
+    oauth:
+      provider: oidc
+      client_id: 7nt8dpajun8m3vk34a8s74ain1
+      client_secret: jrs9u3k3f3aqb43coedepgk91jrj38p20lo4tp3tt69taaqjv5p
+      auth_url: https://stout.auth.us-west-1.amazoncognito.com/oauth2/authorize
+      token_url: https://stout.auth.us-west-1.amazoncognito.com/oauth2/token
+      user_info_url: https://stout.auth.us-west-1.amazoncognito.com/oauth2/userInfo
+      end_session_endpoint: https://stout.auth.us-west-1.amazoncognito.com/logout
+      scopes:
+      - openid
+      callback_url: https://vouch.stoutagtech.dev/auth

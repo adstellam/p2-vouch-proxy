@@ -1,0 +1,46 @@
+vouch:
+  listen: 0.0.0.0
+  port: 9090
+  logLevel: debug
+  testing: false
+  allowAllUsers: true
+  publicAccess: false
+  jwt:
+    signing_method: RS256
+    public_key_file: /config/vouch.stoutagtech.dev.pub 
+    private_key_file: /config/vouch.stoutagtech.dev.key
+    #secret: ThisIsJwtSecret
+    issuer: Vouch
+    maxAge: 240
+    compress: false 
+  cookie: 
+    name: VouchCookie
+    domain: stoutagtech.dev
+    secure: true
+    httpOnly: true
+    maxAge: 240
+    sameSite: lax
+  session:
+    name: VouchSession
+    maxAge: 5
+    #key: ThisIsVouchSessionKey
+  headers:
+    jwt: X-Vouch-Token                          
+    accesstoken: X-Vouch-IdP-AccessToken
+    idtoken: X-Vouch-IdP-IdToken
+    redirect: X-Vouch-Requested-URI
+    claims:
+  post_logout_redirect_uris:
+
+
+oauth:
+  provider: oidc
+  client_id: 7nt8dpajun8m3vk34a8s74ain1
+  client_secret: jrs9u3k3f3aqb43coedepgk91jrj38p20lo4tp3tt69taaqjv5p
+  auth_url: https://stout.auth.us-west-1.amazoncognito.com/oauth2/authorize
+  token_url: https://stout.auth.us-west-1.amazoncognito.com/oauth2/token
+  user_info_url: https://stout.auth.us-west-1.amazoncognito.com/oauth2/userInfo
+  end_session_endpoint: https://stout.auth.us-west-1.amazoncognito.com/logout
+  scopes:
+    - openid
+  callback_url: https://vouch.stoutagtech.dev/auth

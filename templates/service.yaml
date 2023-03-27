@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vouch-service
+  labels:
+    app.kubernetes.io/name: vouch
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: vouch

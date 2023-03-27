@@ -1,0 +1,8 @@
+version: "2.2"
+services: 
+  nginx:
+    image: voucher/vouch-proxy:latest
+    restart: always
+    network_mode: host
+    volumes:
+      - ./config:/config
